@@ -6,7 +6,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        NewsParser parser = new NewsParser();
-        await parser.StartParseAsync();
+        ParserClient parserClient = new ParserClient();
+        await parserClient.StartParseAsync();
     }
 }
