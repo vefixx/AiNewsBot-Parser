@@ -32,6 +32,8 @@ public class ParserClient
                 {
                     _logger.LogInformation($"Обработка сайта {urlPair.Key}");
                     List<ParseResult> parseResults = await urlPair.Value.ParseAsync(urlPair.Key);
+
+                    Console.WriteLine(string.Join("\n", parseResults[0].ResultTexts));
                 }
             }
             catch (Exception e)

@@ -23,7 +23,7 @@ public class Parser59Ru : IParser
             // Парсинг li тегов из главных новостей
             var newsList = doc.DocumentNode
                 .SelectNodes("//ol[@class='content_D5XNy fullHeight_D5XNy']/li");
-
+            
             List<ParseResult> parseResults = new List<ParseResult>();
 
             foreach (var liNode in newsList)
