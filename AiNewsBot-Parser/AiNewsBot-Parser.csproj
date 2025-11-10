@@ -9,10 +9,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0-rc.2.25502.107" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.0-rc.2.25502.107" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.12.4"/>
+        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.10"/>
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0-rc.2.25502.107"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.0-rc.2.25502.107"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="AiNewsBot-APILib">
+            <HintPath>..\..\AiNewsBot-APILib\AiNewsBot-APILib\bin\Debug\net9.0\AiNewsBot-APILib.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
 </Project>

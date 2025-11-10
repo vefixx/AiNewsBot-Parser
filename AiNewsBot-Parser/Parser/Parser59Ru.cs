@@ -1,4 +1,5 @@
-﻿using AiNewsBot_Parser.Models;
+﻿using AiNewsBot_APILib;
+using AiNewsBot_Parser.Models;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 
@@ -8,10 +9,12 @@ public class Parser59Ru : IParser
 {
     private readonly ILogger<Parser59Ru> _logger = Log.CreateLogger<Parser59Ru>();
     private readonly HtmlWeb _web;
+    private readonly AiNewsApiClient _apiClient;
 
     public Parser59Ru(HtmlWeb web)
     {
         _web = web;
+        _apiClient = new AiNewsApiClient();
     }
     
     public async Task<List<ParseResult>> ParseAsync(string url)
@@ -25,11 +28,14 @@ public class Parser59Ru : IParser
                 .SelectNodes("//ol[@class='content_D5XNy fullHeight_D5XNy']/li");
             
             List<ParseResult> parseResults = new List<ParseResult>();
+            List<string> alreadyProcessedIds = await _apiClient.AiGatewayEndpoint.GetAllPostIdsAsync();
 
             foreach (var liNode in newsList)
             {
-                ParseResult parseResult = ProcessLiNode(liNode);
-                parseResults.Add(parseResult);
+                ParseResult parseResult = ProcessLiNode(liNode, alreadyProcessedIds);
+                
+                if (parseResult.ResultTexts.Count != 0)
+                    parseResults.Add(parseResult);
             }
 
             return parseResults;
@@ -41,7 +47,7 @@ public class Parser59Ru : IParser
         }
     }
 
-    private ParseResult ProcessLiNode(HtmlNode liNode)
+    private ParseResult ProcessLiNode(HtmlNode liNode, List<string> alreadyProcessedIds)
     {
         // Получение ссылки на пост
         var aNode = liNode.FirstChild;
@@ -52,6 +58,14 @@ public class Parser59Ru : IParser
         
         if (postUrl != string.Empty)
         {
+            // Проверка, что пост уже был обработан
+            string[] urlParts = postUrl.Split("/");
+            if (alreadyProcessedIds.Contains(urlParts.Last()))
+            {
+                _logger.LogInformation($"Пост url={postUrl} уже был обработан");
+                return parseResult;
+            }
+            
             _logger.LogInformation($"Обработка поста url={postUrl}");
             
             FillResultsForPost(postUrl, parseResult);
