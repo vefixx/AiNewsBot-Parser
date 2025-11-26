@@ -4,5 +4,5 @@ namespace AiNewsBot_Parser.Parser;
 
 public interface IParser
 {
-    Task<List<ParseResult>> ParseAsync(string url);
+    Task<List<PostParseResult>> ParseAsync(string url);
 }

@@ -17,7 +17,7 @@ public class Parser59Ru : IParser
         _apiClient = new AiNewsApiClient();
     }
     
-    public async Task<List<ParseResult>> ParseAsync(string url)
+    public async Task<List<PostParseResult>> ParseAsync(string url)
     {
         try
         {
@@ -27,15 +27,15 @@ public class Parser59Ru : IParser
             var newsList = doc.DocumentNode
                 .SelectNodes("//ol[@class='content_D5XNy fullHeight_D5XNy']/li");
             
-            List<ParseResult> parseResults = new List<ParseResult>();
+            List<PostParseResult> parseResults = new List<PostParseResult>();
             List<string> alreadyProcessedIds = await _apiClient.AiGatewayEndpoint.GetAllPostIdsAsync();
 
             foreach (var liNode in newsList)
             {
-                ParseResult parseResult = ProcessLiNode(liNode, alreadyProcessedIds);
+                PostParseResult postParseResult = ProcessLiNode(liNode, alreadyProcessedIds);
                 
-                if (parseResult.ResultTexts.Count != 0)
-                    parseResults.Add(parseResult);
+                if (!string.IsNullOrEmpty(postParseResult.PostId))
+                    parseResults.Add(postParseResult);
             }
 
             return parseResults;
@@ -47,37 +47,40 @@ public class Parser59Ru : IParser
         }
     }
 
-    private ParseResult ProcessLiNode(HtmlNode liNode, List<string> alreadyProcessedIds)
+    private PostParseResult ProcessLiNode(HtmlNode liNode, List<string> alreadyProcessedIds)
     {
         // Получение ссылки на пост
         var aNode = liNode.FirstChild;
         string postUrl = aNode.GetAttributeValue("href", string.Empty);
         
         // Конечный контент, который будет скормлен ИИ
-        ParseResult parseResult = new ParseResult();
+        PostParseResult postParseResult = new PostParseResult();
         
         if (postUrl != string.Empty)
         {
             // Проверка, что пост уже был обработан
             string[] urlParts = postUrl.Split("/");
-            if (alreadyProcessedIds.Contains(urlParts.Last()))
+            string postId = urlParts[^2];
+            if (alreadyProcessedIds.Contains(postId))
             {
                 _logger.LogInformation($"Пост url={postUrl} уже был обработан");
-                return parseResult;
+                return postParseResult;
             }
+
+            postParseResult.PostId = postId;
             
-            _logger.LogInformation($"Обработка поста url={postUrl}");
+            _logger.LogInformation($"Обработка поста url={postUrl} postId={postId}");
             
-            FillResultsForPost(postUrl, parseResult);
+            FillResultsForPost(postUrl, postParseResult);
 
             _logger.LogInformation(
-                $"Конец обработки поста {postUrl} | Блоков текста: {parseResult.ResultTexts.Count} | Блоков изображений: {parseResult.ResultImages.Count}");
+                $"Конец обработки поста {postUrl} | Блоков текста: {postParseResult.ResultTexts.Count} | Блоков изображений: {postParseResult.ResultImages.Count}");
         }
 
-        return parseResult;
+        return postParseResult;
     }
 
-    private void FillResultsForPost(string postUrl, ParseResult parseResult)
+    private void FillResultsForPost(string postUrl, PostParseResult postParseResult)
     {
         var doc = _web.Load(postUrl);
         
@@ -97,7 +100,7 @@ public class Parser59Ru : IParser
                 {
                     string content = firstParagraph.InnerText.Trim();
                     content = content.Replace("&nbsp;", " ");
-                    parseResult.ResultTexts.Add(content);
+                    postParseResult.ResultTexts.Add(content);
                 }
             }
             else if (attributes.Contains("articleBlockImage_odoam")) // Блок изображения
@@ -105,7 +108,7 @@ public class Parser59Ru : IParser
                 var picture = block.SelectSingleNode(".//picture");
                 var img = picture.SelectSingleNode(".//img");
                 string src = img.GetAttributeValue("src", "");
-                parseResult.ResultImages.Add(src);
+                postParseResult.ResultImages.Add(src);
             }
         }
     }
