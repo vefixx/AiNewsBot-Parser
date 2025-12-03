@@ -46,7 +46,7 @@ public class ParserClient
                         string fullText = string.Join("\n", post.ResultTexts);
                         try
                         {
-                            JobIdData jobIdData = await _apiClient.AiGatewayEndpoint.SummarizePostAsync(new PostCreateInfo()
+                            JobIdDataDTO jobIdData = await _apiClient.AiGatewayEndpoint.SummarizePostAsync(new PostCreateInfoDTO()
                                 { PostId = post.PostId, Text = fullText });
                             _logger.LogInformation($"JobID поста {post.PostId} установлен {jobIdData.JobId}");
                         }
